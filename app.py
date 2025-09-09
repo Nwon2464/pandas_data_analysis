@@ -1,14 +1,24 @@
 import os
 import numpy as np
 import pandas as pd
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import streamlit as st
 
 from lib.data_prep import (
-    load_data, filter_data, kpis,
-    monthly_revenue, monthly_orders, category_revenue, returns_by_category,
-    country_revenue, channel_revenue, aov_by_month,
-    top_products, top_customers
+    load_data,
+    filter_data,
+    kpis,
+    monthly_revenue,
+    monthly_orders,
+    category_revenue,
+    returns_by_category,
+    country_revenue,
+    channel_revenue,
+    aov_by_month,
+    top_products,
+    top_customers,
 )
 
 st.set_page_config(page_title="E-commerce Insights (pandas)", layout="wide")
@@ -38,47 +48,72 @@ with st.sidebar:
     channel = st.multiselect("Channel", options=sorted(df["channel"].unique().tolist()))
 
     # 5) Category
-    category = st.multiselect("Category", options=sorted(df["product_category"].unique().tolist()))
+    category = st.multiselect(
+        "Category", options=sorted(df["product_category"].unique().tolist())
+    )
 
     # 6) Product
     prod_options = df["product_name"].unique().tolist()
     if category:
-        prod_options = df[df["product_category"].isin(category)]["product_name"].unique().tolist()
+        prod_options = (
+            df[df["product_category"].isin(category)]["product_name"].unique().tolist()
+        )
     product_name = st.multiselect("Product", options=sorted(prod_options))
 
     # 7) Returned
-    returned_state = st.selectbox("Returned", options=["All", "Returned", "Not Returned"], index=0)
+    returned_state = st.selectbox(
+        "Returned", options=["All", "Returned", "Not Returned"], index=0
+    )
 
     # 8) Price range
     pmin, pmax = float(df["unit_price"].min()), float(df["unit_price"].max())
-    price_range = st.slider("Unit Price Range", min_value=float(pmin), max_value=float(pmax),
-                            value=(float(pmin), float(pmax)))
+    price_range = st.slider(
+        "Unit Price Range",
+        min_value=float(pmin),
+        max_value=float(pmax),
+        value=(float(pmin), float(pmax)),
+    )
 
     # 9) Quantity range
     qmin, qmax = int(df["quantity"].min()), int(df["quantity"].max())
-    qty_range = st.slider("Quantity Range", min_value=int(qmin), max_value=int(qmax),
-                          value=(int(qmin), int(qmax)))
+    qty_range = st.slider(
+        "Quantity Range",
+        min_value=int(qmin),
+        max_value=int(qmax),
+        value=(int(qmin), int(qmax)),
+    )
 
     # 10) Discount range
     dmin, dmax = float(df["discount_rate"].min()), float(df["discount_rate"].max())
-    discount_range = st.slider("Discount Rate Range", min_value=float(0.0), max_value=float(0.3),
-                               value=(float(dmin), float(dmax)), step=0.01)
+    discount_range = st.slider(
+        "Discount Rate Range",
+        min_value=float(0.0),
+        max_value=float(0.3),
+        value=(float(dmin), float(dmax)),
+        step=0.01,
+    )
 
 # Apply filters
 dff = filter_data(
     df,
-    date_from=date_from, date_to=date_to,
-    country=country, region=region, channel=channel,
-    category=category, product_name=product_name,
+    date_from=date_from,
+    date_to=date_to,
+    country=country,
+    region=region,
+    channel=channel,
+    category=category,
+    product_name=product_name,
     returned_state=returned_state,
-    price_range=price_range, qty_range=qty_range, discount_range=discount_range
+    price_range=price_range,
+    qty_range=qty_range,
+    discount_range=discount_range,
 )
 
 # KPIs
 m = kpis(dff)
 c1, c2, c3, c4, c5, c6 = st.columns(6)
 c1.metric("Net Revenue", f"${m['total_net_revenue']:,.0f}")
-if m['total_gross_revenue'] is not None:
+if m["total_gross_revenue"] is not None:
     c2.metric("Gross Revenue", f"${m['total_gross_revenue']:,.0f}")
 else:
     c2.metric("Gross Revenue", "-")
@@ -179,7 +214,7 @@ with col10:
         label="Download filtered CSV",
         data=dff.to_csv(index=False).encode("utf-8"),
         file_name="filtered_orders.csv",
-        mime="text/csv"
+        mime="text/csv",
     )
 
 st.caption("pandas + matplotlib + Streamlit")
